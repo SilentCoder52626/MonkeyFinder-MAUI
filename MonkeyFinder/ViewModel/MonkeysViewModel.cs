@@ -8,7 +8,8 @@ public partial class MonkeysViewModel : BaseViewModel
     private readonly MonkeyService _monkeyService;
     IConnectivity _connectivity;
     IGeolocation _geolocation;
-
+    [ObservableProperty]
+    bool isRefressing;
     public ObservableCollection<Monkey> Monkeys { get; } = new ObservableCollection<Monkey>();
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
     {
@@ -56,14 +57,15 @@ public partial class MonkeysViewModel : BaseViewModel
     [RelayCommand]
     public async Task GetMonkeysAsync()
     {
-        if (_connectivity.NetworkAccess != NetworkAccess.Internet)
-        {
-            await Shell.Current.DisplayAlert("Internet issue !!", "Check you internet and try again !!", "Ok");
-            return;
-        }
+        
         if (IsBusy) { return; }
         try
         {
+            if (_connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                await Shell.Current.DisplayAlert("Internet issue !!", "Check you internet and try again !!", "Ok");
+                return;
+            }
             IsBusy = true;
             var monkeys = await _monkeyService.GetMonkeys();
             if (Monkeys.Any())
@@ -83,6 +85,7 @@ public partial class MonkeysViewModel : BaseViewModel
         finally
         {
             IsBusy = false;
+            IsRefressing = false;
         }
     }
     [RelayCommand]
